@@ -34,12 +34,12 @@ func (w *writer) WriteByte(b byte) *writer {
 
 // WriteBool 写入 Bool
 func (w *writer) WriteBool(b bool) *writer {
-	w.writeKey(Bool)
-	var by byte = 0
 	if b {
-		by = 1
+		w.writeKey(Bool)
+		w.b.WriteByte(1)
+		return w
 	}
-	w.b.WriteByte(by)
+	w.writeKey(Zero)
 	return w
 }
 
