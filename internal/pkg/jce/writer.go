@@ -27,6 +27,10 @@ func (w *writer) writeKey(Type byte) {
 
 // WriteByte 写入 Byte
 func (w *writer) WriteByte(b byte) *writer {
+	if b == 0 {
+		w.writeKey(Zero)
+		return w
+	}
 	w.writeKey(Byte)
 	w.b.WriteByte(b)
 	return w
@@ -45,6 +49,9 @@ func (w *writer) WriteBool(b bool) *writer {
 
 // WriteInt16 写入 Int16
 func (w *writer) WriteInt16(i int16) *writer {
+	if i < 128 && i > -129 {
+		return w.WriteByte(byte(i))
+	}
 	w.writeKey(Int16)
 	_ = binary.Write(w.b, binary.BigEndian, i)
 	return w
@@ -52,6 +59,9 @@ func (w *writer) WriteInt16(i int16) *writer {
 
 // WriteInt32 写入 Int32
 func (w *writer) WriteInt32(i int32) *writer {
+	if i < 32768 && i > -32769 {
+		return w.WriteInt16(int16(i))
+	}
 	w.writeKey(Int32)
 	_ = binary.Write(w.b, binary.BigEndian, i)
 	return w
@@ -59,6 +69,9 @@ func (w *writer) WriteInt32(i int32) *writer {
 
 // WriteInt64 写入 Int64
 func (w *writer) WriteInt64(i int64) *writer {
+	if i < 2147483648 && i > -9223372036854775809 {
+		return w.WriteInt32(int32(i))
+	}
 	w.writeKey(Int64)
 	_ = binary.Write(w.b, binary.BigEndian, i)
 	return w
