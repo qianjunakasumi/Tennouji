@@ -69,7 +69,7 @@ func (w *writer) WriteInt32(i int32) *writer {
 
 // WriteInt64 写入 Int64
 func (w *writer) WriteInt64(i int64) *writer {
-	if i < 2147483648 && i > -9223372036854775809 {
+	if i < 2147483648 && i > -2147483649 {
 		return w.WriteInt32(int32(i))
 	}
 	w.writeKey(Int64)
