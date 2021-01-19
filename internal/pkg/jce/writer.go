@@ -35,8 +35,8 @@ func (w *writer) SetTag(u uint8) *writer {
 }
 
 // Write 写入 结构体
-func (w *writer) Write(i interface{}) *writer {
-	Type := reflect.TypeOf(i)
+func (w *writer) Write(inter interface{}) *writer {
+	Type := reflect.TypeOf(inter)
 	for i := 0; i < Type.NumField(); i++ {
 		if jce := Type.Field(i).Tag.Get("jce"); jce != "" {
 			id, err := strconv.ParseUint(jce, 10, 8)
@@ -45,7 +45,7 @@ func (w *writer) Write(i interface{}) *writer {
 			}
 			w.SetTag(uint8(id))
 		}
-		w.writeAny(reflect.ValueOf(i).Field(i).Interface())
+		w.writeAny(reflect.ValueOf(inter).Field(i).Interface())
 	}
 	return w
 }
