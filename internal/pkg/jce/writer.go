@@ -3,6 +3,7 @@ package jce
 import (
 	"bytes"
 	"encoding/binary"
+	"reflect"
 )
 
 // writer 写入器
@@ -102,5 +103,62 @@ func (w *writer) WriteString(s string) *writer {
 	w.writeKey(String)
 	w.b.WriteByte(byte(len(s)))
 	w.b.WriteString(s)
+	return w
+}
+
+// WriteMap 写入 Map
+func (w *writer) WriteMap(i interface{}) *writer {
+	w.writeKey(Map)
+	m := reflect.ValueOf(i)
+	keys := m.MapKeys()
+	w.b.Write(NewWriter(0).WriteInt64(int64(len(keys))).Bytes())
+	for _, key := range keys {
+		w.b.Write(NewWriter(0).writeAny(key.Interface()).writeAny(m.MapIndex(key).Interface()).Bytes())
+	}
+	return w
+}
+
+// WriteMap 写入 Slice
+func (w *writer) WriteSlice(i interface{}) *writer {
+	w.writeKey(Slice)
+	s := reflect.ValueOf(i)
+	length := s.Len()
+	w.b.Write(NewWriter(0).WriteInt64(int64(length)).Bytes())
+	for i := 0; i < length; i++ {
+		w.b.Write(NewWriter(0).writeAny(s.Index(i).Interface()).Bytes())
+	}
+	return w
+}
+
+// Bytes 返回 []byte
+func (w *writer) Bytes() []byte { return w.b.Bytes() }
+
+// writeAny 写入任意类型
+func (w *writer) writeAny(i interface{}) *writer {
+	switch o := i.(type) {
+	case byte:
+		w.WriteByte(o)
+	case bool:
+		w.WriteBool(o)
+	case int16:
+		w.WriteInt16(o)
+	case int32:
+		w.WriteInt32(o)
+	case int64:
+		w.WriteInt64(o)
+	case float32:
+		w.WriteFloat32(o)
+	case float64:
+		w.WriteFloat64(o)
+	case string:
+		w.WriteString(o)
+	default:
+		switch reflect.TypeOf(i).Kind() {
+		case reflect.Map:
+			w.WriteMap(o)
+		case reflect.Slice:
+			w.WriteSlice(o)
+		}
+	}
 	return w
 }
