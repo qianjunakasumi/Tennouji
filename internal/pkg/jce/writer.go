@@ -56,16 +56,14 @@ func (w *writer) WriteByte(b byte) *writer {
 		w.writeKey(Zero)
 		return w
 	}
-	w.writeKey(Byte)
-	w.b.WriteByte(b)
+	w.writeKey(Byte).b.WriteByte(b)
 	return w
 }
 
 // WriteBool 写入 Bool
 func (w *writer) WriteBool(b bool) *writer {
 	if b {
-		w.writeKey(Bool)
-		w.b.WriteByte(1)
+		w.writeKey(Bool).b.WriteByte(1)
 		return w
 	}
 	w.writeKey(Zero)
@@ -124,18 +122,16 @@ func (w *writer) WriteString(s string) *writer {
 		w.b.WriteString(s)
 		return w
 	}
-	w.writeKey(String)
-	w.b.WriteByte(byte(len(s)))
+	w.writeKey(String).b.WriteByte(byte(len(s)))
 	w.b.WriteString(s)
 	return w
 }
 
 // WriteMap 写入 Map
 func (w *writer) WriteMap(i interface{}) *writer {
-	w.writeKey(Map)
 	m := reflect.ValueOf(i)
 	keys := m.MapKeys()
-	w.b.Write(NewWriter(0).WriteInt64(int64(len(keys))).Bytes())
+	w.writeKey(Map).b.Write(NewWriter(0).WriteInt64(int64(len(keys))).Bytes())
 	for _, key := range keys {
 		w.b.Write(NewWriter(0).writeAny(key.Interface()).writeAny(m.MapIndex(key).Interface()).Bytes())
 	}
@@ -144,10 +140,9 @@ func (w *writer) WriteMap(i interface{}) *writer {
 
 // WriteMap 写入 Slice
 func (w *writer) WriteSlice(i interface{}) *writer {
-	w.writeKey(Slice)
 	s := reflect.ValueOf(i)
 	length := s.Len()
-	w.b.Write(NewWriter(0).WriteInt64(int64(length)).Bytes())
+	w.writeKey(Slice).b.Write(NewWriter(0).WriteInt64(int64(length)).Bytes())
 	for i := 0; i < length; i++ {
 		w.b.Write(NewWriter(0).writeAny(s.Index(i).Interface()).Bytes())
 	}
@@ -156,16 +151,13 @@ func (w *writer) WriteSlice(i interface{}) *writer {
 
 // WriteStruct 写入 Struct
 func (w *writer) WriteStruct(i interface{}) *writer {
-	w.writeKey(Begin)
-	w.Write(i)
-	w.writeKey(End)
+	w.writeKey(Begin).Write(i).writeKey(End)
 	return w
 }
 
 // WriteBytes 写入 Bytes
 func (w *writer) WriteBytes(b []byte) *writer {
-	w.writeKey(Bytes)
-	w.b.Write(NewWriter(0).writeKey(Byte).SetTag(0).WriteInt64(int64(len(b))).Bytes())
+	w.writeKey(Bytes).b.Write(NewWriter(0).writeKey(Byte).SetTag(0).WriteInt64(int64(len(b))).Bytes())
 	return w
 }
 
