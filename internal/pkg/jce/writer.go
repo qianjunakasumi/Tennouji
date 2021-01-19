@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"reflect"
+	"strconv"
 )
 
 // writer 写入器
@@ -16,7 +17,7 @@ type writer struct {
 func NewWriter(tag uint8) *writer { return &writer{bytes.NewBuffer(nil), tag} }
 
 // writeKey 写入键
-func (w *writer) writeKey(Type byte) {
+func (w *writer) writeKey(Type byte) *writer {
 	if w.tag > 14 {
 		w.b.WriteByte(Type | 0xF0)
 		w.b.WriteByte(w.tag)
@@ -24,6 +25,29 @@ func (w *writer) writeKey(Type byte) {
 		w.b.WriteByte(w.tag<<4 | Type)
 	}
 	w.tag++
+	return w
+}
+
+// SetTag 设置标签
+func (w *writer) SetTag(u uint8) *writer {
+	w.tag = u
+	return w
+}
+
+// Write 写入 结构体
+func (w *writer) Write(i interface{}) *writer {
+	Type := reflect.TypeOf(i)
+	for i := 0; i < Type.NumField(); i++ {
+		if jce := Type.Field(i).Tag.Get("jce"); jce != "" {
+			id, err := strconv.ParseUint(jce, 10, 8)
+			if err != nil {
+				continue
+			}
+			w.SetTag(uint8(id))
+		}
+		w.writeAny(reflect.ValueOf(i).Field(i).Interface())
+	}
+	return w
 }
 
 // WriteByte 写入 Byte
@@ -130,6 +154,21 @@ func (w *writer) WriteSlice(i interface{}) *writer {
 	return w
 }
 
+// WriteStruct 写入 Struct
+func (w *writer) WriteStruct(i interface{}) *writer {
+	w.writeKey(Begin)
+	w.Write(i)
+	w.writeKey(End)
+	return w
+}
+
+// WriteBytes 写入 Bytes
+func (w *writer) WriteBytes(b []byte) *writer {
+	w.writeKey(Bytes)
+	w.b.Write(NewWriter(0).writeKey(Byte).SetTag(0).WriteInt64(int64(len(b))).Bytes())
+	return w
+}
+
 // Bytes 返回 []byte
 func (w *writer) Bytes() []byte { return w.b.Bytes() }
 
@@ -157,6 +196,8 @@ func (w *writer) writeAny(i interface{}) *writer {
 		case reflect.Map:
 			w.WriteMap(o)
 		case reflect.Slice:
+			w.WriteSlice(o)
+		case reflect.Interface:
 			w.WriteSlice(o)
 		}
 	}
