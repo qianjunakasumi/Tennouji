@@ -72,9 +72,6 @@ func (w *writer) WriteBool(b bool) *writer {
 
 // WriteInt16 写入 Int16
 func (w *writer) WriteInt16(i int16) *writer {
-	if i < 128 && i > -129 {
-		return w.WriteByte(byte(i))
-	}
 	w.writeKey(Int16)
 	_ = binary.Write(w.b, binary.BigEndian, i)
 	return w
@@ -82,9 +79,6 @@ func (w *writer) WriteInt16(i int16) *writer {
 
 // WriteInt32 写入 Int32
 func (w *writer) WriteInt32(i int32) *writer {
-	if i < 32768 && i > -32769 {
-		return w.WriteInt16(int16(i))
-	}
 	w.writeKey(Int32)
 	_ = binary.Write(w.b, binary.BigEndian, i)
 	return w
@@ -92,9 +86,6 @@ func (w *writer) WriteInt32(i int32) *writer {
 
 // WriteInt64 写入 Int64
 func (w *writer) WriteInt64(i int64) *writer {
-	if i < 2147483648 && i > -2147483649 {
-		return w.WriteInt32(int32(i))
-	}
 	w.writeKey(Int64)
 	_ = binary.Write(w.b, binary.BigEndian, i)
 	return w
@@ -118,7 +109,7 @@ func (w *writer) WriteFloat64(i float64) *writer {
 func (w *writer) WriteString(s string) *writer {
 	if len(s) > 255 {
 		w.writeKey(String2)
-		_ = binary.Write(w.b, binary.BigEndian, len(s))
+		_ = binary.Write(w.b, binary.BigEndian, int32(len(s)))
 		w.b.WriteString(s)
 		return w
 	}
@@ -131,7 +122,7 @@ func (w *writer) WriteString(s string) *writer {
 func (w *writer) WriteMap(i interface{}) *writer {
 	m := reflect.ValueOf(i)
 	keys := m.MapKeys()
-	w.writeKey(Map).b.Write(NewWriter(0).WriteInt64(int64(len(keys))).Bytes())
+	w.writeKey(Map).b.Write(NewWriter(0).WriteInt32(int32(len(keys))).Bytes())
 	for _, key := range keys {
 		w.b.Write(NewWriter(0).writeAny(key.Interface()).writeAny(m.MapIndex(key).Interface()).Bytes())
 	}
@@ -142,7 +133,7 @@ func (w *writer) WriteMap(i interface{}) *writer {
 func (w *writer) WriteSlice(i interface{}) *writer {
 	s := reflect.ValueOf(i)
 	length := s.Len()
-	w.writeKey(Slice).b.Write(NewWriter(0).WriteInt64(int64(length)).Bytes())
+	w.writeKey(Slice).b.Write(NewWriter(0).WriteInt32(int32(length)).Bytes())
 	for i := 0; i < length; i++ {
 		w.b.Write(NewWriter(0).writeAny(s.Index(i).Interface()).Bytes())
 	}
@@ -157,7 +148,7 @@ func (w *writer) WriteStruct(i interface{}) *writer {
 
 // WriteBytes 写入 Bytes
 func (w *writer) WriteBytes(b []byte) *writer {
-	w.writeKey(Bytes).b.Write(NewWriter(0).writeKey(Byte).SetTag(0).WriteInt64(int64(len(b))).Bytes())
+	w.writeKey(Bytes).b.Write(NewWriter(0).writeKey(Byte).SetTag(0).WriteInt32(int32(len(b))).Bytes())
 	return w
 }
 
