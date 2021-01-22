@@ -149,6 +149,7 @@ func (w *writer) WriteStruct(i interface{}) *writer {
 // WriteBytes 写入 Bytes
 func (w *writer) WriteBytes(b []byte) *writer {
 	w.writeKey(Bytes).b.Write(NewWriter(0).writeKey(Byte).SetTag(0).WriteInt32(int32(len(b))).Bytes())
+	w.b.Write(b)
 	return w
 }
 
@@ -174,6 +175,8 @@ func (w *writer) writeAny(i interface{}) *writer {
 		w.WriteFloat64(o)
 	case string:
 		w.WriteString(o)
+	case []byte:
+		w.WriteBytes(o)
 	default:
 		switch reflect.TypeOf(i).Kind() {
 		case reflect.Map:
