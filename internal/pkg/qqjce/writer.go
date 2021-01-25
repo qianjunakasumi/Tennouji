@@ -206,8 +206,8 @@ func (w *writer) WriteAny(i interface{}) *writer {
 			w.WriteMap(o)
 		case reflect.Slice:
 			w.WriteSlice(o)
-		case reflect.Interface:
-			w.WriteSlice(o)
+		case reflect.Struct:
+			w.WriteStruct(o)
 		}
 	}
 	return w
