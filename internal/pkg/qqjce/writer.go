@@ -14,7 +14,13 @@ type writer struct {
 }
 
 // NewWriter 返回一个写入器
-func NewWriter(tag uint8) *writer { return &writer{bytes.NewBuffer(nil), tag} }
+func NewWriter(tag ...uint8) *writer {
+	var t uint8 = 0
+	if len(tag) != 0 {
+		t = tag[0]
+	}
+	return &writer{bytes.NewBuffer(nil), t}
+}
 
 // writeKey 写入键
 func (w *writer) writeKey(Type byte) *writer {
@@ -45,7 +51,7 @@ func (w *writer) Write(inter interface{}) *writer {
 			}
 			w.SetTag(uint8(id))
 		}
-		w.writeAny(reflect.ValueOf(inter).Field(i).Interface())
+		w.WriteAny(reflect.ValueOf(inter).Field(i).Interface())
 	}
 	return w
 }
@@ -133,7 +139,7 @@ func (w *writer) WriteMap(i interface{}) *writer {
 	keys := m.MapKeys()
 	w.writeKey(Map).b.Write(NewWriter(0).WriteInt32(int32(len(keys))).Bytes())
 	for _, key := range keys {
-		w.b.Write(NewWriter(0).writeAny(key.Interface()).writeAny(m.MapIndex(key).Interface()).Bytes())
+		w.b.Write(NewWriter(0).WriteAny(key.Interface()).WriteAny(m.MapIndex(key).Interface()).Bytes())
 	}
 	return w
 }
@@ -144,7 +150,7 @@ func (w *writer) WriteSlice(i interface{}) *writer {
 	length := s.Len()
 	w.writeKey(Slice).b.Write(NewWriter(0).WriteInt32(int32(length)).Bytes())
 	for i := 0; i < length; i++ {
-		w.b.Write(NewWriter(0).writeAny(s.Index(i).Interface()).Bytes())
+		w.b.Write(NewWriter(0).WriteAny(s.Index(i).Interface()).Bytes())
 	}
 	return w
 }
@@ -173,8 +179,8 @@ func (w *writer) BytesWithPack() []byte {
 	return b.Bytes()
 }
 
-// writeAny 写入任意类型
-func (w *writer) writeAny(i interface{}) *writer {
+// WriteAny 写入任意类型
+func (w *writer) WriteAny(i interface{}) *writer {
 	switch o := i.(type) {
 	case byte:
 		w.WriteByte(o)
