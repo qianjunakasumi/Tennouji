@@ -1,4 +1,4 @@
-package jce
+package qqjce
 
 const (
 	Byte    = 0
