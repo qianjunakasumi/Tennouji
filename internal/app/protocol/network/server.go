@@ -13,16 +13,36 @@ import (
 	"github.com/qianjunakasumi/qqtea"
 )
 
-// serverListRes 服务器列表响应
-type serverListRes struct {
-	ServerList [][]byte `jce:"2"`
-}
+type (
+	// serverListReq 服务器列表请求
+	serverListReq struct {
+		A     byte `jce:"1"`
+		B     byte
+		C     byte
+		D     string
+		E     byte
+		AppID int32
+		IMEI  string
+		F     byte
+		G     byte
+		H     byte
+		I     byte
+		J     byte
+		K     byte
+		L     byte
+	}
 
-// server 服务器
-type server struct {
-	IP   string `jce:"1"`
-	Port int64
-}
+	// serverListRes 服务器列表响应
+	serverListRes struct {
+		ServerList [][]byte `jce:"2"`
+	}
+
+	// server 服务器
+	server struct {
+		IP   string `jce:"1"`
+		Port int64
+	}
+)
 
 // GetServers 获取服务器
 func GetServers() (s []*net.TCPAddr, err error) {
@@ -45,56 +65,50 @@ func GetServers() (s []*net.TCPAddr, err error) {
 		return
 	}
 
-	s = parseRes(tea.Decrypt(resb)[4:]) // [4:] 略过 LV
+	s = parseRes(tea.Decrypt(resb)[4:]) // [4:] 略过 Length
 	return
 }
 
 // buildReq 构建请求
-func buildReq() (req []byte) {
-
-	conf := qqjce.NewWriter(1).
-		WriteByte(0).WriteByte(0).WriteByte(1).WriteString("00000").WriteByte(100).
-		WriteInt32(config.AppID).WriteString(config.IMEI).
-		WriteByte(0).WriteByte(0).WriteByte(0).WriteByte(0).WriteByte(0).WriteByte(0).
-		WriteByte(1).BytesWithPack()
-
-	req = qqtlv.NewWriter(0).Write(
+func buildReq() []byte {
+	return qqtlv.NewWriter(0).Write(
 		qqjce.NewWriter().Write(qqjce.Packet{
 			Version:    2,
 			Controller: "ConfigHttp",
 			Method:     "HttpServerListReq",
 			Data: qqjce.NewWriter(0).WriteMap(qqjce.DataV2{
-				"HttpServerListReq": {"ConfigHttp.HttpServerListReq": conf},
+				"HttpServerListReq": {
+					"ConfigHttp.HttpServerListReq": qqjce.NewWriter().Write(serverListReq{
+						0, 0, 1, "00000", 100,
+						config.AppID, config.IMEI,
+						0, 0, 0, 0, 0, 0, 1,
+					}).BytesWithPack(),
+				},
 			}).Bytes(),
 		}).Bytes(),
 	).BytesWithLV()
-
-	return
 }
 
 // parseRes 解析响应
-func parseRes(jcedata []byte) (sers []*net.TCPAddr) {
+func parseRes(jcedata []byte) (srvs []*net.TCPAddr) {
 
-	packet := new(qqjce.Packet)
-	qqjce.NewReader(jcedata).Read(packet)
-	dataV2 := qqjce.NewReader(packet.Data).ReadWithDataV2("HttpServerListRes", "ConfigHttp.HttpServerListRes")
+	p := new(qqjce.Packet)
+	qqjce.NewReader(jcedata).Read(p)
+	data := qqjce.NewReader(p.Data).ReadWithDataV2("HttpServerListRes", "ConfigHttp.HttpServerListRes")
 
 	res := new(serverListRes)
-	qqjce.NewReader(dataV2).Read(res)
+	qqjce.NewReader(data).Read(res)
 
 	for _, v := range res.ServerList {
 
 		s := new(server)
-		qqjce.NewReader(v[1:]).Read(s)
+		qqjce.NewReader(qqjce.NewReader(v).ReadStruct()).Read(s)
 
 		if strings.Contains(s.IP, "qq") {
 			continue
 		}
 
-		sers = append(sers, &net.TCPAddr{
-			IP:   net.ParseIP(s.IP),
-			Port: int(s.Port),
-		})
+		srvs = append(srvs, &net.TCPAddr{IP: net.ParseIP(s.IP), Port: int(s.Port)})
 	}
 	return
 }
