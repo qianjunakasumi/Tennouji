@@ -14,6 +14,13 @@ func (r *reader) ReadSlice() (s [][]byte) {
 	return
 }
 
+// ReadStruct 读取 Struct
+func (r *reader) ReadStruct() (b []byte) {
+	r.readKey()
+	b, _ = r.readStruct()
+	return
+}
+
 // ReadBytes 读取 Bytes
 func (r *reader) ReadBytes() (s []byte) {
 	r.readKey()
