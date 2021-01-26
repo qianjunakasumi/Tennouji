@@ -159,6 +159,20 @@ func (r *reader) readSlice() (s [][]byte, o []byte) {
 	return
 }
 
+// readStruct 读取 Struct
+func (r *reader) readStruct() (b []byte, o []byte) {
+	var d []byte
+	for {
+		_, t, or := r.ReadAny()
+		o = append(o, or...)
+		if t == 0 {
+			b = d
+			return
+		}
+		d = append(d, or...)
+	}
+}
+
 // readBytes 读取 Bytes
 func (r *reader) readBytes() (b []byte, o []byte) {
 	_, _, or := r.readKey()
@@ -201,13 +215,7 @@ func (r *reader) ReadAny() (d interface{}, tag uint8, o []byte) {
 	case Slice:
 		d, or = r.readSlice()
 	case Begin:
-		for {
-			_, t, orr := r.ReadAny()
-			if t == 0 {
-				break
-			}
-			or = append(or, orr...)
-		}
+		d, or = r.readStruct()
 	case End: // 空白
 	case Bytes:
 		d, or = r.readBytes()
