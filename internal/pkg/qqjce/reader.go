@@ -27,10 +27,6 @@ func (r *reader) Read(inter interface{}) {
 
 		Data, Tag, _ := r.ReadAny()
 
-		/*
-			FIXME 也许有更好的方案
-			节省strconv.ParseUint调用次数
-		*/
 		if j, ok := Type.Field(i).Tag.Lookup("jce"); ok {
 			t, _ := strconv.ParseUint(j, 10, 8)
 			if Tag < uint8(t) {
