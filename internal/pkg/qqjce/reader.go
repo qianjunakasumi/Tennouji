@@ -109,23 +109,29 @@ func (r *reader) ReadFloat64() (f float64, o []byte) {
 }
 
 // ReadString 读取 String
-func (r *reader) ReadString() (s string, o []byte) { // TODO 提高复用
+func (r *reader) ReadString() (s string, o []byte) {
 	l, or := r.ReadByte()
 	o = append(o, or...)
-	b := make([]byte, l)
-	_, _ = r.r.Read(b)
-	o = append(o, b...)
-	return string(b), o
+	s, or = r.readString(int32(l))
+	o = append(o, or...)
+	return
 }
 
 // ReadString2 读取 String2
 func (r *reader) ReadString2() (s string, o []byte) {
 	l, or := r.ReadInt32()
 	o = append(o, or...)
-	b := make([]byte, l)
+
+	s, or = r.readString(l)
+	o = append(o, or...)
+	return
+}
+
+// readString 读取 String
+func (r *reader) readString(l int32) (s string, b []byte) {
+	b = make([]byte, l)
 	_, _ = r.r.Read(b)
-	o = append(o, b...)
-	return string(b), o
+	return string(b), b
 }
 
 // readMap 读取 Map
