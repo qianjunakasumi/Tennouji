@@ -168,14 +168,6 @@ func (w *writer) WriteBytes(b []byte) *writer {
 // Bytes 返回 []byte
 func (w *writer) Bytes() []byte { return w.b.Bytes() }
 
-// BytesWithPack 返回 包 []byte
-func (w *writer) BytesWithPack() []byte {
-	b := bytes.NewBuffer([]byte{0x0A})
-	b.Write(w.b.Bytes())
-	b.WriteByte(0x0B)
-	return b.Bytes()
-}
-
 // WriteAny 写入任意类型
 func (w *writer) WriteAny(i interface{}) *writer {
 	switch o := i.(type) {
