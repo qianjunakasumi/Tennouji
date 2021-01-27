@@ -71,21 +71,15 @@ func GetServers() (s []*net.TCPAddr, err error) {
 
 // buildReq 构建请求
 func buildReq() []byte {
-	return qqtlv.NewWriter(0).Write(
-		qqjce.NewWriter().Write(&qqjce.Packet{
-			Version:    2,
-			Controller: "ConfigHttp",
-			Method:     "HttpServerListReq",
-			Data: qqjce.NewWriter(0).WriteMap(qqjce.DataV2{
-				"HttpServerListReq": {
-					"ConfigHttp.HttpServerListReq": qqjce.NewWriter().Write(&serverListReq{
-						0, 0, 1, "00000", 100,
-						config.AppID, config.IMEI,
-						0, 0, 0, 0, 0, 0, 1,
-					}).BytesWithPack(),
-				},
-			}).Bytes(),
-		}).Bytes(),
+	return qqtlv.NewWriter(0).Write(qqjce.NewWriter().Write(&qqjce.Packet{
+		Version:    2,
+		Controller: "ConfigHttp",
+		Method:     "HttpServerListReq",
+		Data: qqjce.NewWriter().WriteWithDataV2(qqjce.NewWriter().Write(&serverListReq{
+			0, 0, 1, "00000", 100,
+			config.AppID, config.IMEI,
+			0, 0, 0, 0, 0, 0, 1,
+		}), "HttpServerListReq", "ConfigHttp.HttpServerListReq").Bytes()}).Bytes(),
 	).BytesWithLV()
 }
 
