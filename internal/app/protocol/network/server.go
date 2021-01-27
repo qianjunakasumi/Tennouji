@@ -9,8 +9,8 @@ import (
 
 	"github.com/qianjunakasumi/Tennouji/internal/pkg/config"
 	"github.com/qianjunakasumi/Tennouji/internal/pkg/qqjce"
+	"github.com/qianjunakasumi/Tennouji/internal/pkg/qqtea"
 	"github.com/qianjunakasumi/Tennouji/internal/pkg/qqtlv"
-	"github.com/qianjunakasumi/qqtea"
 )
 
 type (
