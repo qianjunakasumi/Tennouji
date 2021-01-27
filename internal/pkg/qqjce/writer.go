@@ -22,15 +22,16 @@ func NewWriter(tag ...uint8) *writer {
 	return &writer{bytes.NewBuffer(nil), t}
 }
 
-// writeKey 写入键
-func (w *writer) writeKey(Type byte) *writer {
-	if w.tag > 14 {
-		w.b.WriteByte(Type | 0xF0)
-		w.b.WriteByte(w.tag)
-	} else {
-		w.b.WriteByte(w.tag<<4 | Type)
+// Write 写入 结构体
+func (w *writer) Write(inter interface{}) *writer {
+	Type := reflect.TypeOf(inter).Elem()
+	for i := 0; i < Type.NumField(); i++ {
+		if j, ok := Type.Field(i).Tag.Lookup("jce"); ok {
+			id, _ := strconv.ParseUint(j, 10, 8)
+			w.SetTag(uint8(id))
+		}
+		w.WriteAny(reflect.ValueOf(inter).Elem().Field(i).Interface())
 	}
-	w.tag++
 	return w
 }
 
@@ -40,19 +41,15 @@ func (w *writer) SetTag(u uint8) *writer {
 	return w
 }
 
-// Write 写入 结构体
-func (w *writer) Write(inter interface{}) *writer {
-	Type := reflect.TypeOf(inter)
-	for i := 0; i < Type.NumField(); i++ {
-		if jce := Type.Field(i).Tag.Get("jce"); jce != "" {
-			id, err := strconv.ParseUint(jce, 10, 8)
-			if err != nil {
-				continue
-			}
-			w.SetTag(uint8(id))
-		}
-		w.WriteAny(reflect.ValueOf(inter).Field(i).Interface())
+// writeKey 写入键
+func (w *writer) writeKey(Type byte) *writer {
+	if w.tag > 14 {
+		w.b.WriteByte(Type | 0xF0)
+		w.b.WriteByte(w.tag)
+	} else {
+		w.b.WriteByte(w.tag<<4 | Type)
 	}
+	w.tag++
 	return w
 }
 
