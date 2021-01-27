@@ -29,11 +29,12 @@ func (r *reader) ReadBytes() (s []byte) {
 }
 
 // UnPack 解包
-func UnPack(b []byte) []byte {
+func UnPack(r *reader) []byte {
+	b := r.ReadBytes()
 	return b[1 : len(b)-1]
 }
 
 // ReadWithDataV2 读取 DataV2
 func (r *reader) ReadWithDataV2(k1, k2 string) []byte {
-	return UnPack(NewReader(NewReader(r.ReadMap()[k1]).ReadMap()[k2]).ReadBytes())
+	return UnPack(NewReader(NewReader(r.ReadMap()[k1]).ReadMap()[k2]))
 }
