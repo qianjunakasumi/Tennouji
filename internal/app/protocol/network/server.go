@@ -8,9 +8,12 @@ import (
 	"strings"
 
 	"github.com/qianjunakasumi/Tennouji/internal/pkg/config"
+	"github.com/qianjunakasumi/Tennouji/internal/pkg/logger"
 	"github.com/qianjunakasumi/Tennouji/internal/pkg/qqjce"
 	"github.com/qianjunakasumi/Tennouji/internal/pkg/qqtea"
 	"github.com/qianjunakasumi/Tennouji/internal/pkg/qqtlv"
+
+	"go.uber.org/zap"
 )
 
 type (
@@ -56,17 +59,18 @@ func GetServers() (s []*net.TCPAddr, err error) {
 		bytes.NewReader(req),
 	)
 	if err != nil {
+		logger.Named("网络").Named("获取服务器").Error("请求失败", zap.Error(err))
 		return
 	}
 	defer resp.Body.Close()
 
 	resb, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
+		logger.Named("网络").Named("获取服务器").Error("读取失败", zap.Error(err))
 		return
 	}
 
-	s = parseRes(tea.Decrypt(resb)[4:]) // [4:] 略过 Length
-	return
+	return parseRes(tea.Decrypt(resb)[4:]), nil // [4:] 略过 Length
 }
 
 // buildReq 构建请求
@@ -104,5 +108,6 @@ func parseRes(jcedata []byte) (srvs []*net.TCPAddr) {
 
 		srvs = append(srvs, &net.TCPAddr{IP: net.ParseIP(s.IP), Port: int(s.Port)})
 	}
+
 	return
 }
