@@ -3,9 +3,7 @@ package network
 import (
 	"bytes"
 	"io/ioutil"
-	"net"
 	"net/http"
-	"strings"
 
 	"github.com/qianjunakasumi/Tennouji/internal/pkg/config"
 	"github.com/qianjunakasumi/Tennouji/internal/pkg/logger"
@@ -40,15 +38,15 @@ type (
 		ServerListWithWIFI [][]byte `jce:"3"` // WIFI模式下服务器列表
 	}
 
-	// server 服务器
-	server struct {
-		IP   string `jce:"1"`
+	// Server 服务器
+	Server struct {
+		Name string `jce:"1"`
 		Port int64
 	}
 )
 
 // GetServers 获取服务器
-func GetServers() (s []*net.TCPAddr, err error) {
+func GetServers() (s []*Server, err error) {
 
 	tea, _ := qqtea.NewCipher([]byte{240, 68, 31, 95, 244, 45, 165, 143, 220, 247, 148, 154, 186, 98, 212, 17})
 	req := tea.Encrypt(buildReq())
@@ -88,7 +86,7 @@ func buildReq() []byte {
 }
 
 // parseRes 解析响应
-func parseRes(jcedata []byte) (srvs []*net.TCPAddr) {
+func parseRes(jcedata []byte) (srvs []*Server) {
 
 	p := new(qqjce.Packet)
 	qqjce.NewReader(jcedata).Read(p)
@@ -98,15 +96,10 @@ func parseRes(jcedata []byte) (srvs []*net.TCPAddr) {
 	qqjce.NewReader(data).Read(res)
 
 	for _, v := range res.ServerListWithWIFI {
-
-		s := new(server)
+		s := new(Server)
 		qqjce.NewReader(qqjce.NewReader(v).ReadStruct()).Read(s)
 
-		if strings.Contains(s.IP, "qq") {
-			continue
-		}
-
-		srvs = append(srvs, &net.TCPAddr{IP: net.ParseIP(s.IP), Port: int(s.Port)})
+		srvs = append(srvs, s)
 	}
 
 	return
