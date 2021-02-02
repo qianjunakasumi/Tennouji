@@ -73,7 +73,7 @@ func GetServers() (s []*Server, err error) {
 
 // buildReq 构建请求
 func buildReq() []byte {
-	return qqtlv.NewWriter(0).Write(qqjce.NewWriter().Write(&qqjce.Packet{
+	return qqtlv.NewWriter(0).WriteBytes(qqjce.NewWriter().Write(&qqjce.Packet{
 		Version:    2,
 		Controller: "ConfigHttp",
 		Method:     "HttpServerListReq",
