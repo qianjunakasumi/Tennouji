@@ -37,7 +37,7 @@ type (
 
 	// serverListRes 服务器列表响应
 	serverListRes struct {
-		ServerList [][]byte `jce:"2"`
+		ServerListWithWIFI [][]byte `jce:"3"` // WIFI模式下服务器列表
 	}
 
 	// server 服务器
@@ -97,7 +97,7 @@ func parseRes(jcedata []byte) (srvs []*net.TCPAddr) {
 	res := new(serverListRes)
 	qqjce.NewReader(data).Read(res)
 
-	for _, v := range res.ServerList {
+	for _, v := range res.ServerListWithWIFI {
 
 		s := new(server)
 		qqjce.NewReader(qqjce.NewReader(v).ReadStruct()).Read(s)
