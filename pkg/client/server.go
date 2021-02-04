@@ -43,6 +43,10 @@ func (s *server) connect(re bool) (err error) {
 // dial 拨号
 func (s *server) dial() (err error) {
 
+	if c := s.conn; c != nil {
+		_ = c.Close()
+	}
+
 	for _, srv := range s.servers {
 
 		adr := srv.Name + ":" + strconv.FormatInt(srv.Port, 10)
@@ -69,7 +73,7 @@ func (s *server) listen() {
 			_, err = s.conn.Read(length)
 		)
 		if err != nil {
-			logger.Error("服务器已断开连接", zap.Error(err))
+			logger.Error("遇到错误，服务器已断开连接", zap.Error(err))
 			go s.connect(true)
 			return
 		}
