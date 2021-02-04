@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/qianjunakasumi/Tennouji/internal/pkg/config"
+	"github.com/qianjunakasumi/Tennouji/internal/app/config"
 	"github.com/qianjunakasumi/Tennouji/internal/pkg/logger"
 	"github.com/qianjunakasumi/Tennouji/internal/pkg/qqjce"
 	"github.com/qianjunakasumi/Tennouji/internal/pkg/qqtea"
@@ -74,15 +74,18 @@ func GetServers() (s []*Server, err error) {
 // buildReq 构建请求
 func buildReq() []byte {
 	return qqtlv.NewWriter(0).WriteBytes(qqjce.NewWriter().Write(&qqjce.Packet{
-		Version:    2,
+		Version:    3,
 		Controller: "ConfigHttp",
 		Method:     "HttpServerListReq",
-		Data: qqjce.NewWriter().WriteWithDataV2(qqjce.NewWriter().Write(&serverListReq{
-			0, 0, 1, "00000", 100,
-			config.AppID, config.IMEI,
-			0, 0, 0, 0, 0, 0, 1,
-		}), "HttpServerListReq", "ConfigHttp.HttpServerListReq").Bytes()}).Bytes(),
-	).BytesWithLV()
+		Data: qqjce.NewWriter().WriteWithDataV3(
+			qqjce.NewWriter().Write(&serverListReq{
+				0, 0, 1, "00000", 100,
+				config.AppID, config.IMEI,
+				0, 0, 0, 0, 0, 0, 1,
+			}),
+			"HttpServerListReq",
+		).Bytes(),
+	}).Bytes()).BytesWithLV()
 }
 
 // parseRes 解析响应
@@ -90,7 +93,7 @@ func parseRes(jcedata []byte) (srvs []*Server) {
 
 	p := new(qqjce.Packet)
 	qqjce.NewReader(jcedata).Read(p)
-	data := qqjce.NewReader(p.Data).ReadWithDataV2("HttpServerListRes", "ConfigHttp.HttpServerListRes")
+	data := qqjce.NewReader(p.Data).ReadWithDataV3("HttpServerListRes")
 
 	res := new(serverListRes)
 	qqjce.NewReader(data).Read(res)
