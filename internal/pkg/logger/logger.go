@@ -26,7 +26,6 @@ func Init() {
 		zapcore.NewCore(zapcore.NewJSONEncoder(conf), zapcore.AddSync(lumber), zapcore.DebugLevel),
 		zap.AddCaller(),
 	)
-	defer logger.Sync()
 	job(lumber)
 
 }
