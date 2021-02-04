@@ -38,3 +38,8 @@ func UnPack(r *reader) []byte {
 func (r *reader) ReadWithDataV2(k1, k2 string) []byte {
 	return UnPack(NewReader(NewReader(r.ReadMap()[k1]).ReadMap()[k2]))
 }
+
+// ReadWithDataV3 读取 DataV3
+func (r *reader) ReadWithDataV3(k string) []byte {
+	return UnPack(NewReader(r.ReadMap()[k]))
+}

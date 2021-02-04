@@ -16,3 +16,8 @@ func (w *writer) BytesWithPack() []byte {
 func (w *writer) WriteWithDataV2(wr *writer, k1, k2 string) *writer {
 	return NewWriter().WriteMap(DataV2{k1: {k2: wr.BytesWithPack()}})
 }
+
+// WriteWithDataV3 写入 DataV3
+func (w *writer) WriteWithDataV3(wr *writer, k string) *writer {
+	return NewWriter().WriteMap(DataV3{k: wr.BytesWithPack()})
+}
