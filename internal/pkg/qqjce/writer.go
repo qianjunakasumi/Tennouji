@@ -141,7 +141,7 @@ func (w *writer) WriteMap(i interface{}) *writer {
 	return w
 }
 
-// WriteMap 写入 Slice
+// WriteSlice 写入 Slice
 func (w *writer) WriteSlice(i interface{}) *writer {
 	s := reflect.ValueOf(i)
 	length := s.Len()
