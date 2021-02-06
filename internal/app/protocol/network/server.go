@@ -17,20 +17,14 @@ import (
 type (
 	// serverListReq 服务器列表请求
 	serverListReq struct {
-		A     byte `jce:"1"`
-		B     byte
-		C     byte
-		D     string
-		E     byte
-		AppID int32
-		IMEI  string
-		F     byte
-		G     byte
-		H     byte
-		I     byte
-		J     byte
-		K     byte
-		L     byte
+		Number  int64  `jce:"1"` // 号码
+		Timeout byte   // 超时时间
+		C       byte   // 未知字段
+		IMSI    string // 国际移动用户识别码
+		ISWIFI  bool   // 是否 WIFI 环境
+		AppID   int32  // App ID
+		IMEI    string // 国际移动设备识别码
+		CellID  byte   // 基站编号？
 	}
 
 	// serverListRes 服务器列表响应
@@ -40,8 +34,9 @@ type (
 
 	// Server 服务器
 	Server struct {
-		Name string `jce:"1"`
-		Port int64
+		Host string `jce:"1"` // 主机
+		Port int64  // 端口
+		City string `jce:"8"` // 城市
 	}
 )
 
@@ -78,10 +73,9 @@ func buildReq() []byte {
 		Controller: "ConfigHttp",
 		Method:     "HttpServerListReq",
 		Data: qqjce.NewWriter().WriteWithDataV3(
-			qqjce.NewWriter().Write(&serverListReq{
-				0, 0, 1, "00000", 100,
-				config.AppID, config.IMEI,
-				0, 0, 0, 0, 0, 0, 1,
+			qqjce.NewWriter().Write(&serverListReq{ // TODO 支持更多的参数
+				0, 0, 1, "", true,
+				config.AppID, config.IMEI, 0,
 			}),
 			"HttpServerListReq",
 		).Bytes(),

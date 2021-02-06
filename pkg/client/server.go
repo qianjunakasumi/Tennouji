@@ -49,7 +49,7 @@ func (s *server) dial() (err error) {
 
 	for _, srv := range s.servers {
 
-		adr := srv.Name + ":" + strconv.FormatInt(srv.Port, 10)
+		adr := srv.Host + ":" + strconv.FormatInt(srv.Port, 10)
 		s.conn, err = net.Dial("tcp", adr)
 		if err != nil {
 			logger.Named("网络").Named("拨号").Debug("拨号失败", zap.String("地址", adr))
