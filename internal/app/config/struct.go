@@ -23,7 +23,7 @@ func GetConfig() (conf *Client, err error) {
 		return nil, err
 	}
 
-	err = yaml.Unmarshal(f, conf)
+	err = yaml.Unmarshal(f, &conf)
 	if err != nil {
 		logger.Error("无法解析配置文件或损坏的配置文件", zap.Error(err))
 		return nil, err
